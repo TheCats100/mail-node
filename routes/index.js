@@ -1,7 +1,31 @@
-var express = require('express');
-var router = express.Router();
-
+const express = require('express');
+const router = express.Router();
+const multer = require('multer');
+const upload = multer({ dest: 'tmp/' });
+const fs = require('fs');
 const nodemailer = require("nodemailer");
+
+//upload des images
+
+router.post('/monupload', upload.array('monfichier', 3), function (req, res, next) {
+  const err = req.files.reduce((err, file) => {
+    if (err == null && file.size < 3000000) {
+      try {
+        fs.renameSync(file.path, 'public/images/' + file.originalname);
+      } catch (fileErr) {
+        console.log(fileErr)
+        err=fileErr
+      }
+      return err
+    }
+  }, (null));
+  if (err) {
+    res.send('problème durant le déplacement');
+  } else {
+    res.send('Fichier uploadé avec succès');
+  }
+})
+
 
 // Création de la méthode de transport de l'email 
 var smtpTransport = nodemailer.createTransport({
